@@ -35,6 +35,9 @@ class AppointmentController {
 			response.status(500).json({ message: "Server error" });
 		}
 	}
+	getDayAppointments(request, response) {
+		response.json({message: "Day Appointments"});	
+	}
 }
 
 export default AppointmentController;
