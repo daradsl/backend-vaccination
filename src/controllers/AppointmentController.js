@@ -2,7 +2,7 @@ import appointments from "../models/AppointmentModel.js";
 import appointmentAvailable from "../services/UsageRules.js";
 import crypto from "crypto";
 import { format} from "date-fns";
-import { appointmentSchema } from "../validators/SchemaValidator.js";
+import { appointmentSchema, daySchema } from "../validators/SchemaValidator.js";
 
 class AppointmentController {
 	getAllAppointments(request, response) {
@@ -36,7 +36,24 @@ class AppointmentController {
 		}
 	}
 	getDayAppointments(request, response) {
-		response.json({message: "Day Appointments"});	
+		try {
+			const dayValidation = daySchema.validate(request.params, {abortEarly: false,});
+			if (dayValidation.error) {
+				return response.status(400).json({error: dayValidation.error.details.map(({ message }) => message),message: "Invalid date"});
+			}
+			let { date } = request.params;
+			date = format(new Date(date), "yyyy/MM/dd");
+
+			let dayAppointments = appointments.filter((appointment) => appointment.date === date);
+			if (dayAppointments.length === 0) {
+				return response.status(404).json({ message: "No appointments found" });
+			}
+			dayAppointments = dayAppointments.sort(function (x, y) { return x.hour - y.hour; });
+			return response.status(200).json(dayAppointments);
+		} catch (error) {
+			console.log(error);
+			response.status(500).json({ message: "Server error" });
+		}
 	}
 }
 
