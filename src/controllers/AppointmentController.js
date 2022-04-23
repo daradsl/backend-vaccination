@@ -55,6 +55,9 @@ class AppointmentController {
 			response.status(500).json({ message: "Server error" });
 		}
 	}
+	update(request, response){
+		response.send({message: "update"});
+	}
 }
 
 export default AppointmentController;
