@@ -32,7 +32,7 @@ class AppointmentController {
 			return response.status(403).json(availableDate);
 		} catch(error){
 			console.log(error);
-			response.status(500).json({ message: "Server error" });
+			return response.status(500).json({ message: "Server error" });
 		}
 	}
 	getDayAppointments(request, response) {
@@ -52,11 +52,36 @@ class AppointmentController {
 			return response.status(200).json(dayAppointments);
 		} catch (error) {
 			console.log(error);
-			response.status(500).json({ message: "Server error" });
+			return response.status(500).json({ message: "Server error" });
 		}
 	}
-	update(request, response){
-		response.send({message: "update"});
+	async update(request, response){
+		try {
+			const appointmentValidation = appointmentSchema.validate(request.body,{abortEarly: false,});
+			if (appointmentValidation.error) {
+				return response.status(400).json({
+					error: appointmentValidation.error.details.map(({ message }) => message),message: "Invalid data",});
+			}
+			const id = request.params.id;
+			const { date, hour, accomplished, status, name, birthDate } = request.body;
+			const index = appointments.findIndex((appointment) => appointment.id === id);
+			if (index !== -1) {
+				appointments[index] = {
+					id,
+					date,
+					hour,
+					accomplished,
+					status,
+					name,
+					birthDate,
+				};
+				return response.status(200).json({ message: "Appointment updated" });
+			}
+			return response.status(404).json({ message: "Appointment not found" });
+		} catch (error) {
+			console.log(error);
+			return response.status(500).json({ message: "Server error" });
+		}
 	}
 }
 
